@@ -1,6 +1,6 @@
 # 01 · worktree 역할 분리 오케스트레이션
 
-구현 역할 둘을 병렬로 돌리고, 통합·검증 역할이 그 위에 쌓이며, 승인은 사람만 하는 5역할 파이프라인.
+구현 역할 둘을 병렬로 돌리고, 통합·검증 역할이 그 위에 쌓이며, 승인은 사람만 하는 5역할 파이프라인. 아래 Step 1부터 순서대로 따라가면 재현된다.
 
 ## 언제 쓰나
 
@@ -30,20 +30,268 @@ Backend와 Frontend는 master에서 각각 출발해 서로를 기다리지 않�
 
 worktree는 "같은 프로젝트의 분리된 작업 책상"이다. 에이전트가 실패해도 기준 책상(master)은 더러워지지 않고, 망가진 책상만 지우고 다시 만들면 된다.
 
-## 스텝
+---
 
-처음부터 순서대로 따라가면 재현된다.
+# Step 1 · 준비
 
-| 스텝 | 내용 | 누가 |
+작업장을 만들기 전에 기준 저장소가 깨끗한지 확인한다.
+
+갖춰야 할 것:
+
+- **git worktree를 쓸 수 있는 저장소** — 커밋이 하나 이상 있어야 한다
+- **하네스** — Codex Desktop, 또는 터미널에서 세션을 여러 개 띄울 수 있는 CLI 에이전트
+- **검증 스크립트** — 이 구조의 판정은 전부 스크립트 통과 여부에 걸려 있다. 없으면 Step 2에서 먼저 만든다
+
+```bash
+cd <repo>
+git switch master          # 저장소에 따라 main. 이 문서는 master로 쓴다
+git status                 # 반드시 clean 이어야 한다
+git worktree list          # 남아 있는 작업장이 있는지 확인
+```
+
+`git status`가 깨끗하지 않으면 먼저 정리한다. 커밋되지 않은 변경이 있는 상태에서 worktree를 만들면 어느 작업장의 결과인지 나중에 구분할 수 없다.
+
+> **흔한 실패** — 기준 branch가 `master`인지 `main`인지 확인하지 않고 아래 명령을 그대로 복사한다.
+
+---
+
+# Step 2 · 작업 지시서 고정
+
+에이전트를 띄우기 전에 범위·권한·검증 명령을 못박는다. **이 스텝을 건너뛰면 나머지가 전부 무너진다.** 범위가 없으면 Step 4에서 에이전트가 어디까지 손대도 되는지 알 수 없고, 검증 명령이 없으면 Step 5에서 통과를 판정할 근거가 없다.
+
+## 작업 지시서에 들어가야 하는 것
+
+1. **목표(Goal)** — 무엇을 달성하는가
+2. **범위(Scope)** — 어느 파일·모듈까지인가
+3. **수정 허용(Allow)** — 건드려도 되는 것
+4. **수정 금지(Deny)** — 건드리면 안 되는 것
+5. **검증(Validate)** — 실행할 명령
+6. **산출물(Artifacts)** — 무엇을 남기는가
+7. **중단 조건(Fallback Barrier)** — 언제 멈추고 사람을 부르는가
+
+7번이 가장 자주 빠진다. 중단 조건이 없으면 에이전트가 컨텍스트와 비용이 소진될 때까지 무한 디버깅 루프를 돈다. "테스트 실패가 연속 3회 반복되면 중단하고 로그를 남긴다" 같은 형태로 적는다.
+
+## 권한을 프롬프트가 아니라 데이터로 선언한다
+
+3·4·5번을 프롬프트로만 지시하면 지켜졌는지 사람이 읽어서 판단해야 한다. 파일 하나에 데이터로 선언하면 감사 스크립트가 diff와 대조해 기계로 판정한다. **규칙 위반이 의견이 아니라 사실이 된다.**
+
+`tasks/acceptance.json` 같은 파일 하나를 만들고, **어떤 역할도 이 파일을 수정할 수 없게** 한다.
+
+| 항목 | 내용 |
+|---|---|
+| 판정 규칙 | 분류 규칙, 필수 필드, 허용값 목록 |
+| 케이스 | 입력과 기대 출력 쌍. 검증 스크립트가 이걸로 돈다 |
+| UI 계약 | 필수 DOM id, 필수 요소 목록 |
+| `allowedFilesByRole` | 역할별로 **수정 가능한** 파일 목록 |
+| `forbiddenFilesByRole` | 역할별로 **금지된** 파일 목록 |
+| 위험도 정책 | 검증 전부 통과면 LOW, 하나라도 실패면 HIGH |
+
+## 검증 스크립트를 준비한다
+
+최소 두 종류가 필요하다.
+
+- **기능 검증** — 케이스 목록을 돌려 기대 출력과 대조한다
+- **권한 감사** — 각 역할의 branch diff를 `allowedFilesByRole`과 대조해 위반을 찾는다
+
+권한 감사가 이 구조의 핵심이다. 이게 없으면 "구현 파일 수정 금지"가 지켜졌는지 사람이 diff를 일일이 읽어야 한다.
+
+**작업장을 만들기 전에** 기준 저장소에서 한 번 돌려본다.
+
+```bash
+python3 scripts/check_api.py; echo "exit=$?"
+python3 scripts/audit.py;     echo "exit=$?"
+```
+
+여기서 규칙으로 못박을 것: **검증 스크립트나 채점 기준을 고쳐서 통과시키지 않는다.** 공통 금지 파일에 검증 스크립트와 지시서 자신을 넣는다.
+
+> **흔한 실패** — 금지 목록이 비어 있어 에이전트가 인접 파일까지 "개선"한다. 지시서를 에이전트가 고칠 수 있게 두어, 통과하지 못하면 기준을 낮추는 쪽으로 간다.
+
+---
+
+# Step 3 · 작업장 만들기
+
+역할마다 독립된 worktree와 branch를 만든다. 각 역할의 **시작 branch**는 아래 표를 따른다. 여기가 어긋나면 Step 5의 통합이 성립하지 않는다.
+
+| 역할 | 시작 branch | 역할 branch |
 |---|---|---|
-| [01 · 준비](01-setup.md) | 전제 확인, 기준 저장소 상태 정리 | 사람 |
-| [02 · 작업 지시서 고정](02-work-order.md) | 범위·권한·검증 명령을 먼저 못박는다 | 사람 |
-| [03 · 작업장 만들기](03-worktrees.md) | 역할별 worktree와 branch 생성 | 사람 또는 하네스 |
-| [04 · 구현 병렬 실행](04-implement.md) | Backend / Frontend 동시 진행 | 구현 에이전트 |
-| [05 · 통합과 검증](05-integrate-verify.md) | merge 후 전체 검증, 증거 생산 | 통합·검증 에이전트 |
-| [06 · 승인과 정리](06-approve-cleanup.md) | 사람이 diff를 읽고 merge, 작업장 회수 | 사람 |
+| Backend | `master` | `task/003-backend` |
+| Frontend | `master` | `task/003-frontend` |
+| Integration | `task/003-backend` | `task/003-integration` |
+| Tester | `task/003-integration` | `task/003-tester` |
 
-02를 건너뛰면 나머지가 전부 무너진다. 범위와 검증 명령이 없으면 04에서 에이전트가 어디까지 손대도 되는지 알 수 없고, 05에서 통과 여부를 판정할 근거가 없다.
+## Codex Desktop을 쓸 때
+
+**손으로 `git worktree` 명령을 실행하지 않는다.** 하네스가 관리하는 작업장이라 손으로 만든 것은 추적되지 않는다.
+
+1. "새 작업 트리(worktree)" 기능으로 작업장을 만든다 (경로는 대개 `~/.codex/worktrees/` 아래)
+2. 작업 패널의 "브랜치 생성"으로 역할 branch를 만든다
+3. 위 표대로 시작 branch를 지정한다
+
+## git CLI로 직접 만들 때
+
+구현 역할 둘만 먼저 만든다. 통합·검증 작업장은 앞 단계가 끝나야 만들 수 있다.
+
+```bash
+cd <repo>
+git switch master
+
+git worktree add ../wt-backend  -b task/003-backend  master
+git worktree add ../wt-frontend -b task/003-frontend master
+
+git worktree list      # 작업장 경로와 branch가 짝이 맞는지
+git branch -vv         # 역할 branch가 모두 master에서 갈라졌는지
+```
+
+> **흔한 실패** — 작업장 하나에서 branch를 바꿔 가며 쓴다(격리가 사라진다). worktree를 저장소 안에 만든다(저장소 자신의 변경으로 잡힌다). Integration을 `master`에서 만든다(Backend 구현이 빠진 채 통합된다).
+
+---
+
+# Step 4 · 구현 병렬 실행
+
+Backend와 Frontend를 각자의 작업장에서 동시에 돌린다. 서로 기다리지 않는다.
+
+작업장마다 터미널을 따로 연다. 한 터미널에서 `cd`로 옮겨 다니면 세션이 섞인다.
+
+```bash
+# 터미널 1
+cd ../wt-backend && codex        # 또는 claude
+
+# 터미널 2
+cd ../wt-frontend && codex
+```
+
+각 세션에 Step 2에서 만든 지시서를 준다. 자기 역할의 허용/금지 파일이 무엇인지 명시한다.
+
+각 역할이 하는 일은 넷이다. 자기 범위의 파일만 수정하고, 검증 스크립트를 통과시키고, 자기 report를 쓰고, **자기 branch에만 commit 한다.**
+
+```bash
+git status                          # 의도한 파일만 변경됐는지
+git diff --stat master..HEAD        # 무엇이 얼마나 바뀌었는지
+python3 scripts/check_api.py; echo "exit=$?"
+
+git add <허용된 파일만>
+git commit -m "task_003(backend): ..."
+```
+
+report에는 실행한 명령과 exit code를 적는다. "테스트 통과했습니다"라는 문장이 아니라 로그와 exit code가 신뢰의 근거다.
+
+규칙으로 못박을 것:
+
+- **`push` 하지 않는다.** 원격에 올리는 것은 사람이 최종 승인한 뒤의 일이다
+- **다른 역할의 branch를 merge 하지 않는다.** 통합은 Step 5의 Integration 역할이 한다
+- **`git add -A`를 쓰지 않는다.** 허용된 파일만 명시해서 스테이징한다. 전체 추가는 금지 파일을 딸려 보내는 가장 흔한 경로다
+
+> **흔한 실패** — 범위를 넘어 인접 코드나 포맷을 "개선"한다(Step 5의 감사가 잡는다). 중단 조건 없이 루프를 돌아 비용이 샌다.
+
+---
+
+# Step 5 · 통합과 검증
+
+## Integration — 통합만 한다
+
+Backend branch 위에서 출발해 Frontend를 병합한다. **구현 파일은 건드리지 않는다.**
+
+```bash
+cd <repo>
+git worktree add ../wt-integration -b task/003-integration task/003-backend
+cd ../wt-integration
+git merge --no-ff task/003-frontend -m "task_003: merge frontend into integration"
+```
+
+`--no-ff`를 쓰는 이유는 병합 지점을 커밋으로 남겨 어느 역할의 작업이 언제 들어왔는지 그래프에서 보이게 하려는 것이다. fast-forward로 합치면 이 경계가 사라진다.
+
+충돌이 나면 여기서 멈추고 사람을 부른다. 통합 역할이 충돌을 임의로 해소하면 어느 쪽 구현이 살아남았는지 아무도 모르게 된다.
+
+## 전체 검증 — 실패하면 여기서 멈춘다
+
+```bash
+python3 scripts/check_api.py; echo "exit=$?"
+python3 scripts/check_dom.py; echo "exit=$?"
+python3 scripts/audit.py;     echo "exit=$?"    # 역할별 파일 권한 위반 검사
+```
+
+세 번째가 Step 2에서 만든 권한 감사다. 위반이 나오면 통과시키지 않는다. 하나라도 실패하면 위험도는 HIGH이며, 구현 역할에게 되돌려 보낸다. **통합 역할이 대신 고치지 않는다.**
+
+## Tester — 코드는 건드리지 않고 증거만 만든다
+
+```bash
+cd <repo>
+git worktree add ../wt-tester -b task/003-tester task/003-integration
+```
+
+Tester가 만드는 것은 둘뿐이다.
+
+- `docs/task_003/test/report.md` — 실행한 명령, exit code, 실패 원인
+- `docs/task_003/test/approval_draft.json` — **`status`는 항상 `pending`**
+
+에이전트가 승인 상태를 쓰는 것 자체가 금지다. 권고는 적을 수 있지만 판단은 사람이 한다.
+
+## 사람이 승인 전에 확인할 증거
+
+| 질문 | 증거 |
+|---|---|
+| 어떤 명령을 실행했는가 | 실행 로그 |
+| exit code는 무엇인가 | 0 여부 |
+| 어떤 파일이 바뀌었는가 | `git diff --stat` |
+| 요구사항과 diff가 맞는가 | 사람이 읽는다 |
+| 실패 원인을 기록했는가 | report 파일 |
+| 사람이 승인했는가 | approval 파일 |
+
+전달 통로는 둘로 고정한다. **구현은 branch와 commit으로, 판단은 report 파일로.** 별도 patch 파일은 만들지 않는다 — diff가 이미 변경 증거다. report 경로를 `docs/<task>/<role>/`로 고정하면 어느 역할의 주장인지 섞이지 않는다.
+
+> **흔한 실패** — 통합 역할이 검증 실패를 그 자리에서 손본다. Tester가 코드를 고친다(검증자가 대상을 고치면 통과의 의미가 사라진다). approval draft에 `pending` 아닌 값이 들어가 게이트가 형식만 남는다.
+
+---
+
+# Step 6 · 승인과 정리
+
+사람이 기준 책상에서 diff를 읽고 판단한 뒤 통합한다.
+
+```bash
+cd <repo>
+git switch master
+
+git diff --stat master..task/003-tester           # 무엇이 얼마나 바뀌는지
+git log --graph --oneline master..task/003-tester # 어느 역할이 언제 들어왔는지
+```
+
+이 두 출력과 report 파일이 판단 재료의 전부다. **"완료했습니다"라는 보고는 증거가 아니다.** `--graph`에 각 역할의 병합 지점이 보이지 않으면 Step 5에서 `--no-ff`가 빠진 것이다.
+
+Tester branch는 Integration 위에서 만들어졌고 Integration은 Backend·Frontend를 합친 것이므로, **Tester 하나만 merge하면 전부 들어온다.**
+
+```bash
+git merge --no-ff task/003-tester -m "task_003: merge verified work"
+```
+
+최종 merge는 사람이 local master에서만 한다. 검증이 실패한 상태로 merge하지 않는다 — 되돌려 보내는 게 정상 경로다.
+
+## 작업장 회수
+
+```bash
+git worktree remove ../wt-backend
+git worktree remove ../wt-frontend
+git worktree remove ../wt-integration
+git worktree remove ../wt-tester
+
+git worktree list      # 남은 작업장 확인
+```
+
+커밋되지 않은 변경이 남아 있으면 `remove`가 거부된다. 버릴 변경이면 `--force`를 쓰되 무엇을 버리는지 먼저 확인한다. 역할 branch는 바로 지우지 않는 편이 낫다 — 나중에 "어느 역할이 무엇을 했는가"를 되짚을 때 필요하다.
+
+## 실패했을 때
+
+작업장 하나가 망가져도 기준 책상은 멀쩡하다. 그 작업장만 지우고 Step 3부터 다시 만든다.
+
+```bash
+git worktree remove --force ../wt-backend
+git branch -D task/003-backend
+```
+
+되돌리는 비용이 낮다는 것이 이 구조를 쓰는 이유 중 하나다.
+
+> **흔한 실패** — diff를 안 보고 merge 한다(승인 게이트가 형식만 남는다). fast-forward로 합친다(역할 경계가 그래프에서 사라진다). 작업장을 안 치워 다음 실행에서 오래된 작업장에서 실수로 작업한다.
+
+---
 
 ## 이 설계의 요점
 
