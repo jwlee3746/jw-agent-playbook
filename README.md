@@ -81,7 +81,7 @@ cp -r 00-template claude/01-code-review-fanout
 
 | # | 이름 | 용도 | 출처 | 상태 |
 |---|---|---|---|---|
-| — | 아직 없음 | | | |
+| 01 | [worktree-role-orchestration](codex/01-worktree-role-orchestration/) | 구현 2역할 병렬 → 통합 → 검증, 승인은 사람만 하는 5역할 파이프라인 | 실습 | 실험 중 |
 
 ## 상태
 
