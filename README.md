@@ -39,6 +39,10 @@ codex/
 
 프롬프트가 여러 개면 하위 디렉토리를 파지 말고 `prompt-planner.md`, `prompt-critic.md`처럼 접미사로 구분합니다.
 
+**항목 안에 `CLAUDE.md`라는 이름을 그대로 쓰지 않습니다.** Claude Code는 작업 중인 경로의 `CLAUDE.md`를 읽으므로, 카탈로그에 보관만 하려던 규칙이 실제로 적용되어 버립니다. `CLAUDE-en.md`, `CLAUDE-kr.md`처럼 언어 접미사를 붙이면 로드되지 않습니다. 같은 이유로 `AGENTS.md`도 접미사를 붙입니다.
+
+지금 적용 중인 규칙은 레포 루트의 `CLAUDE.md`에 두고 `.gitignore`로 로컬에서만 관리합니다. 커밋되는 것은 항목 안의 사본입니다.
+
 ## 항목 추가 규칙
 
 새 항목은 [`00-template/`](00-template/)을 목적지로 복사한 뒤 채웁니다.

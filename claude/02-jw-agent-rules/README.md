@@ -8,9 +8,11 @@
 
 | 파일 | 역할 |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | 규칙 본문. 다른 문서 저장소에 복사해 쓸 때 이 파일을 가져간다 |
+| [`CLAUDE-kr.md`](CLAUDE-kr.md) | 규칙 본문. 다른 문서 저장소에 복사해 쓸 때 이 파일을 가져가 `CLAUDE.md`로 저장한다 |
 
-레포 루트의 [`/AGENT-RULES.md`](../../AGENT-RULES.md)는 `Goal-Driven Execution`을 아직 포함한 이전 버전이다. 이 레포에서 규칙이 자동 적용되지 않도록 `CLAUDE.md`가 아닌 이름으로 두었다 — Claude Code가 세션 시작 시 읽는 것은 `CLAUDE.md`와 `CLAUDE.local.md`뿐이다.
+파일명에 `-kr`을 붙인 이유는 언어 표시가 전부가 아니다. 하위 디렉토리에 `CLAUDE.md`를 그대로 두면 이 경로에서 작업할 때 Claude Code가 그걸 읽어 **카탈로그에 보관 중인 규칙이 실제로 적용된다.** 접미사가 붙으면 로드되지 않는다.
+
+레포 루트의 `CLAUDE.md`는 지금 실제로 적용 중인 규칙이라 `.gitignore`에 넣어 로컬에서만 관리한다. 커밋되는 것은 이 항목 안의 사본이다.
 
 ## 용도
 

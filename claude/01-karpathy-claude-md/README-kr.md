@@ -26,7 +26,7 @@ Karpathy가 지적한 것을 원작이 인용한 대목이다.
 | **Surgical Changes** (필요한 곳만 건드린다) | 작업과 무관한 수정, 건드리면 안 되는 코드 |
 | **Goal-Driven Execution** (목표 기반 실행) | 테스트 우선·검증 가능한 완료 조건으로 얻는 레버리지 |
 
-네 원칙의 상세 내용은 같은 디렉토리의 [`CLAUDE-kr.md`](CLAUDE-kr.md)에 있다. 원문은 [`CLAUDE.md`](CLAUDE.md).
+네 원칙의 상세 내용은 같은 디렉토리의 [`CLAUDE-kr.md`](CLAUDE-kr.md)에 있다. 원문은 [`CLAUDE-en.md`](CLAUDE-en.md).
 
 ## 설치
 

@@ -27,7 +27,7 @@ Karpathy 본인이 쓴 파일이 아니다. 2026년 1월 그가 LLM 코딩 실�
 
 | 파일 | 역할 |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | 원문 그대로 |
+| [`CLAUDE-en.md`](CLAUDE-en.md) | 원문 그대로. 원작 파일명은 `CLAUDE.md`이나, 이 경로에서 작업할 때 Claude Code가 읽어버리므로 접미사를 붙였다 |
 | [`CLAUDE-kr.md`](CLAUDE-kr.md) | 한국어판. 축자 번역이 아니라 같은 원칙을 한국어로 다시 쓴 것이다. 에이전트에 실제로 물릴 때 쓴다 |
 | [`README-kr.md`](README-kr.md) | 원작 README 한국어판. 설치 방법과 원작의 설명이 들어 있다 |
 

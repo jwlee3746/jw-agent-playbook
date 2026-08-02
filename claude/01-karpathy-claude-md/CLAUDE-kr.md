@@ -1,7 +1,7 @@
 # 에이전트 행동 규칙 (한국어판)
 
 Karpathy가 정리한 LLM 코딩의 네 가지 실패 유형에 대응하는 규칙이다.
-원문: https://github.com/multica-ai/andrej-karpathy-skills — 축자 번역이 아니라 같은 원칙을 한국어로 다시 쓴 것이다. 대조가 필요하면 같은 디렉토리의 `CLAUDE.md`를 본다.
+원문: https://github.com/multica-ai/andrej-karpathy-skills — 축자 번역이 아니라 같은 원칙을 한국어로 다시 쓴 것이다. 대조가 필요하면 같은 디렉토리의 `CLAUDE-en.md`를 본다.
 
 프로젝트별 지침을 대체하지 말고 그 위에 얹어서 쓴다.
 
