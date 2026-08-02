@@ -60,7 +60,9 @@ cp -r 00-template claude/01-code-review-fanout
 - `출처: 자작`이 아닌 항목은 **저자와 원문 URL**을 반드시 적습니다.
 - 원문은 계속 바뀌므로 **스냅샷 일자와 커밋 SHA**를 함께 남깁니다. 어느 시점의 것인지 모르면 나중에 비교가 불가능합니다.
 - **라이선스가 명시되지 않은 원문은 파일로 담지 않습니다.** 링크와 짧은 발췌, 그리고 내 평가만 둡니다. 이 레포는 MIT라, 라이선스 없는 원문을 담으면 제3자에게 MIT로 재배포하는 형태가 됩니다.
+- 라이선스는 **LICENSE 파일과 README 본문을 모두** 확인합니다. GitHub API의 `license` 필드는 LICENSE 파일이 있어야 인식하므로, README에 `## License: MIT`라고만 적힌 레포는 라이선스 없음으로 나옵니다.
 - 아직 안 써본 것은 `상태: 미검증`입니다. 별 개수는 검증이 아닙니다.
+- 번역본을 함께 둘 때는 `-kr` 접미사를 씁니다 (`CLAUDE-kr.md`). 축자 번역인지 같은 취지의 재작성인지 파일 안에 밝힙니다.
 
 ## 목록
 
@@ -68,7 +70,7 @@ cp -r 00-template claude/01-code-review-fanout
 
 | # | 이름 | 용도 | 출처 | 상태 |
 |---|---|---|---|---|
-| 01 | [karpathy-claude-md](claude/01-karpathy-claude-md/) | LLM 코딩 실패 4유형을 막는 에이전트 행동 규칙 | 외부 | 미검증 |
+| 01 | [karpathy-claude-md](claude/01-karpathy-claude-md/) | LLM 코딩 실패 4유형을 막는 에이전트 행동 규칙. 원문 + 한국어판 | 외부 (MIT) | 미검증 |
 
 ### codex
 
