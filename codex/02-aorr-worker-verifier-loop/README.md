@@ -10,7 +10,7 @@ Worker가 고치고 Verifier가 검증한다. 실패 원인 하나에 최소 수
 |---|---|
 | `README.md` | 전체 절차와 각 단계에서 정할 것 |
 | [`MEMORY-template.md`](MEMORY-template.md) | 상태 파일 템플릿. 프로젝트에 복사해 쓴다 |
-| [`prompts.md`](prompts.md) | 단계별 프롬프트 골격 |
+| [`prompts/`](prompts/) | 단계별 프롬프트. 단계마다 템플릿과 예제 두 파일 |
 
 ## 언제 쓰나
 
