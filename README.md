@@ -79,6 +79,7 @@ cp -r 00-template claude/01-code-review-fanout
 | 01 | [karpathy-claude-md](claude/01-karpathy-claude-md/) | LLM 코딩 실패 4유형을 막는 에이전트 행동 규칙. 원문 + 한국어판 | 외부 (MIT) | 미검증 |
 | 02 | [jw-agent-rules](claude/02-jw-agent-rules/) | 01에서 하나만 남겨 넓히고 검증 규칙을 더한 코드 없는 레포용 규칙 | 자작 | 실험 중 |
 | 03 | [behavior-preserving-refactor](claude/03-behavior-preserving-refactor/) | codex/03을 Claude Code로 옮긴 것. 테스트 동결을 권한으로 강제 | 자작 | 미검증 |
+| 04 | [eval-driven-improvement-loop](claude/04-eval-driven-improvement-loop/) | codex/04를 Claude Code로 옮긴 것. holdout은 쓰기가 아니라 읽기를 막는다 | 자작 | 미검증 |
 
 ### codex
 
@@ -87,6 +88,7 @@ cp -r 00-template claude/01-code-review-fanout
 | 01 | [worktree-role-orchestration](codex/01-worktree-role-orchestration/) | 구현 2역할 병렬 → 통합 → 검증, 승인은 사람만 하는 5역할 파이프라인 | 실습 | 실험 중 |
 | 02 | [aorr-worker-verifier-loop](codex/02-aorr-worker-verifier-loop/) | Codex가 고치고 Claude가 검증하는 AORR 상태 머신. fingerprint로 재시도 통제 | 실습 | 검증됨 |
 | 03 | [behavior-preserving-refactor](codex/03-behavior-preserving-refactor/) | 동작을 고정하고 구조만 바꾼다. 기계적 변경은 도구, 판단 변경만 에이전트 | 자작 | 미검증 |
+| 04 | [eval-driven-improvement-loop](codex/04-eval-driven-improvement-loop/) | 평가 결과로 프롬프트·few-shot·코드를 고친다. 골든셋 동결, holdout 게이트 | 자작 | 미검증 |
 
 ## 상태
 
