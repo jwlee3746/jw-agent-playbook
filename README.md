@@ -71,6 +71,7 @@ cp -r 00-template claude/01-code-review-fanout
 | # | 이름 | 용도 | 출처 | 상태 |
 |---|---|---|---|---|
 | 01 | [karpathy-claude-md](claude/01-karpathy-claude-md/) | LLM 코딩 실패 4유형을 막는 에이전트 행동 규칙. 원문 + 한국어판 | 외부 (MIT) | 미검증 |
+| 02 | [jw-agent-rules](claude/02-jw-agent-rules/) | 01에서 둘만 채택하고 검증 규칙 하나를 더한 이 레포의 실사용 규칙 | 자작 | 실험 중 |
 
 ### codex
 
