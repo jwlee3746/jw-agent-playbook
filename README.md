@@ -82,6 +82,7 @@ cp -r 00-template claude/01-code-review-fanout
 | # | 이름 | 용도 | 출처 | 상태 |
 |---|---|---|---|---|
 | 01 | [worktree-role-orchestration](codex/01-worktree-role-orchestration/) | 구현 2역할 병렬 → 통합 → 검증, 승인은 사람만 하는 5역할 파이프라인 | 실습 | 실험 중 |
+| 02 | [aorr-worker-verifier-loop](codex/02-aorr-worker-verifier-loop/) | Codex가 고치고 Claude가 검증하는 AORR 상태 머신. fingerprint로 재시도 통제 | 실습 | 검증됨 |
 
 ## 상태
 
